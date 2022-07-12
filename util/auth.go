@@ -2,6 +2,7 @@ package util
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -12,7 +13,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func ValidateToken(token string, ctx *gin.Context) {
+func ValidateToken(ctx *gin.Context, token string) error {
 	claims := &Claims{}
 	var jwtSignedKey = []byte("secret_key")
 	tokenParse, err := jwt.ParseWithClaims(token, claims,
@@ -23,16 +24,28 @@ func ValidateToken(token string, ctx *gin.Context) {
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			ctx.JSON(http.StatusUnauthorized, err)
-			return
+			return err
 		}
 		ctx.JSON(http.StatusBadRequest, err)
-		return
+		return err
 	}
 
 	if !tokenParse.Valid {
 		ctx.JSON(http.StatusUnauthorized, "Token is invalid")
-		return
+		return nil
 	}
 
 	ctx.Next()
+	return nil
+}
+
+func GetTokenInHeaderAndVerify(ctx *gin.Context) error {
+	authorizationHeaderKey := ctx.GetHeader("authorization")
+	fields := strings.Fields(authorizationHeaderKey)
+	tokenToValidate := fields[1]
+	errOnValiteToken := ValidateToken(ctx, tokenToValidate)
+	if errOnValiteToken != nil {
+		return errOnValiteToken
+	}
+	return nil
 }
