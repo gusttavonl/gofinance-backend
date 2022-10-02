@@ -16,7 +16,7 @@ SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
 -- name: GetAccounts :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -26,14 +26,25 @@ SELECT
   a.date,
   a.created_at,
   c.title as category_title
-FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
-and a.category_id = $3 and a.title like $4
-and a.description like $5 and a.date = $6;
+FROM
+  accounts a
+LEFT JOIN
+  categories c ON c.id = a.category_id
+WHERE
+  a.user_id = @user_id
+AND
+  a.type = @type
+AND
+  LOWER(a.title) LIKE CONCAT('%', LOWER(@title::text), '%')
+AND
+  LOWER(a.description) LIKE CONCAT('%', LOWER(@description::text), '%')
+AND
+  a.category_id = COALESCE(@category_id, a.category_id)
+AND
+  a.date = COALESCE(@date, a.date);
 
 -- name: GetAccountsByUserIdAndType :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -44,11 +55,11 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2;
 
 -- name: GetAccountsByUserIdAndTypeAndCategoryId :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -59,12 +70,12 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3;
 
 -- name: GetAccountsByUserIdAndTypeAndCategoryIdAndTitle :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -75,12 +86,12 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3 and a.title like $4;
 
 -- name: GetAccountsByUserIdAndTypeAndCategoryIdAndTitleAndDescription :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -91,13 +102,13 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3 and a.title like $4
 and a.description like $5;
 
 -- name: GetAccountsByUserIdAndTypeAndTitle :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -108,12 +119,12 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.title like $3;
 
 -- name: GetAccountsByUserIdAndTypeAndDescription :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -124,12 +135,12 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.description like $3;
 
 -- name: GetAccountsByUserIdAndTypeAndDate :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -140,16 +151,16 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.date like $3;
 
 -- name: GetAccountsReports :one
-SELECT SUM(value) AS sum_value FROM accounts 
+SELECT SUM(value) AS sum_value FROM accounts
 where user_id = $1 and type = $2;
 
 -- name: GetAccountsGraph :one
-SELECT COUNT(*) FROM accounts 
+SELECT COUNT(*) FROM accounts
 where user_id = $1 and type = $2;
 
 -- name: UpdateAccount :one

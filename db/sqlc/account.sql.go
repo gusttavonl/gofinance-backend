@@ -93,7 +93,7 @@ func (q *Queries) GetAccount(ctx context.Context, id int32) (Account, error) {
 }
 
 const getAccounts = `-- name: GetAccounts :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -103,19 +103,30 @@ SELECT
   a.date,
   a.created_at,
   c.title as category_title
-FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
-and a.category_id = $3 and a.title like $4
-and a.description like $5 and a.date = $6
+FROM
+  accounts a
+LEFT JOIN
+  categories c ON c.id = a.category_id
+WHERE
+  a.user_id = $1
+AND
+  a.type = $2
+AND
+  LOWER(a.title) LIKE CONCAT('%', LOWER($3::text), '%')
+AND
+  LOWER(a.description) LIKE CONCAT('%', LOWER($4::text), '%')
+AND
+  a.category_id = COALESCE($5, a.category_id)
+AND
+  a.date = COALESCE($6, a.date)
 `
 
 type GetAccountsParams struct {
 	UserID      int32     `json:"user_id"`
 	Type        string    `json:"type"`
-	CategoryID  int32     `json:"category_id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
+	CategoryID  int32     `json:"category_id"`
 	Date        time.Time `json:"date"`
 }
 
@@ -135,9 +146,9 @@ func (q *Queries) GetAccounts(ctx context.Context, arg GetAccountsParams) ([]Get
 	rows, err := q.db.QueryContext(ctx, getAccounts,
 		arg.UserID,
 		arg.Type,
-		arg.CategoryID,
 		arg.Title,
 		arg.Description,
+		arg.CategoryID,
 		arg.Date,
 	)
 	if err != nil {
@@ -172,7 +183,7 @@ func (q *Queries) GetAccounts(ctx context.Context, arg GetAccountsParams) ([]Get
 }
 
 const getAccountsByUserIdAndType = `-- name: GetAccountsByUserIdAndType :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -183,7 +194,7 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 `
 
@@ -238,7 +249,7 @@ func (q *Queries) GetAccountsByUserIdAndType(ctx context.Context, arg GetAccount
 }
 
 const getAccountsByUserIdAndTypeAndCategoryId = `-- name: GetAccountsByUserIdAndTypeAndCategoryId :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -249,8 +260,8 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3
 `
 
@@ -306,7 +317,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndCategoryId(ctx context.Context, a
 }
 
 const getAccountsByUserIdAndTypeAndCategoryIdAndTitle = `-- name: GetAccountsByUserIdAndTypeAndCategoryIdAndTitle :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -317,8 +328,8 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3 and a.title like $4
 `
 
@@ -380,7 +391,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndCategoryIdAndTitle(ctx context.Co
 }
 
 const getAccountsByUserIdAndTypeAndCategoryIdAndTitleAndDescription = `-- name: GetAccountsByUserIdAndTypeAndCategoryIdAndTitleAndDescription :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -391,8 +402,8 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
-where a.user_id = $1 and a.type = $2 
+LEFT JOIN categories c ON c.id = a.category_id
+where a.user_id = $1 and a.type = $2
 and a.category_id = $3 and a.title like $4
 and a.description like $5
 `
@@ -457,7 +468,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndCategoryIdAndTitleAndDescription(
 }
 
 const getAccountsByUserIdAndTypeAndDate = `-- name: GetAccountsByUserIdAndTypeAndDate :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -468,7 +479,7 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.date like $3
 `
@@ -525,7 +536,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndDate(ctx context.Context, arg Get
 }
 
 const getAccountsByUserIdAndTypeAndDescription = `-- name: GetAccountsByUserIdAndTypeAndDescription :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -536,7 +547,7 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.description like $3
 `
@@ -593,7 +604,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndDescription(ctx context.Context, 
 }
 
 const getAccountsByUserIdAndTypeAndTitle = `-- name: GetAccountsByUserIdAndTypeAndTitle :many
-SELECT 
+SELECT
   a.id,
   a.user_id,
   a.title,
@@ -604,7 +615,7 @@ SELECT
   a.created_at,
   c.title as category_title
 FROM accounts a
-LEFT JOIN categories c ON c.id = a.category_id 
+LEFT JOIN categories c ON c.id = a.category_id
 where a.user_id = $1 and a.type = $2
 and a.title like $3
 `
@@ -661,7 +672,7 @@ func (q *Queries) GetAccountsByUserIdAndTypeAndTitle(ctx context.Context, arg Ge
 }
 
 const getAccountsGraph = `-- name: GetAccountsGraph :one
-SELECT COUNT(*) FROM accounts 
+SELECT COUNT(*) FROM accounts
 where user_id = $1 and type = $2
 `
 
@@ -678,7 +689,7 @@ func (q *Queries) GetAccountsGraph(ctx context.Context, arg GetAccountsGraphPara
 }
 
 const getAccountsReports = `-- name: GetAccountsReports :one
-SELECT SUM(value) AS sum_value FROM accounts 
+SELECT SUM(value) AS sum_value FROM accounts
 where user_id = $1 and type = $2
 `
 
