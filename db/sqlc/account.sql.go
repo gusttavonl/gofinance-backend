@@ -122,12 +122,12 @@ AND
 `
 
 type GetAccountsParams struct {
-	UserID      int32     `json:"user_id"`
-	Type        string    `json:"type"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	CategoryID  int32     `json:"category_id"`
-	Date        time.Time `json:"date"`
+	UserID      int32         `json:"user_id"`
+	Type        string        `json:"type"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	CategoryID  sql.NullInt32 `json:"category_id"`
+	Date        sql.NullTime  `json:"date"`
 }
 
 type GetAccountsRow struct {

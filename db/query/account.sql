@@ -39,9 +39,9 @@ AND
 AND
   LOWER(a.description) LIKE CONCAT('%', LOWER(@description::text), '%')
 AND
-  a.category_id = COALESCE(@category_id, a.category_id)
+  a.category_id = COALESCE(sqlc.narg('category_id'), a.category_id)
 AND
-  a.date = COALESCE(@date, a.date);
+  a.date = COALESCE(sqlc.narg('date'), a.date);
 
 -- name: GetAccountsByUserIdAndType :many
 SELECT
